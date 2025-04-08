@@ -37,7 +37,8 @@ enum class GameResultReason {
 using PackedBoard = std::array<std::uint8_t, 24>;
 
 class Board {
-    using U64 = std::uint64_t;
+    using U64  = std::uint64_t;
+    using U128 = __uint128_t;
 
    public:
     class CastlingRights {
@@ -83,13 +84,13 @@ class Board {
 
    private:
     struct State {
-        U64 hash;
+        U128 hash;
         CastlingRights castling;
         Square enpassant;
         uint8_t half_moves;
         Piece captured_piece;
 
-        State(const U64 &hash, const CastlingRights &castling, const Square &enpassant, const uint8_t &half_moves,
+        State(const U128 &hash, const CastlingRights &castling, const Square &enpassant, const uint8_t &half_moves,
               const Piece &captured_piece)
             : hash(hash),
               castling(castling),
@@ -613,7 +614,7 @@ class Board {
      * @brief Get the current zobrist hash key of the board
      * @return
      */
-    [[nodiscard]] U64 hash() const { return key_; }
+    [[nodiscard]] U128 hash() const { return key_; }
     [[nodiscard]] Color sideToMove() const { return stm_; }
     [[nodiscard]] Square enpassantSq() const { return ep_sq_; }
     [[nodiscard]] CastlingRights castlingRights() const { return cr_; }
@@ -808,8 +809,8 @@ class Board {
      * @brief Calculates the zobrist hash key of the board, expensive! Prefer using hash().
      * @return
      */
-    [[nodiscard]] U64 zobrist() const {
-        U64 hash_key = 0ULL;
+    [[nodiscard]] U128 zobrist() const {
+        U128 hash_key = 0ULL;
 
         auto wPieces = us(Color::WHITE);
         auto bPieces = us(Color::BLACK);
@@ -824,13 +825,13 @@ class Board {
             hash_key ^= Zobrist::piece(at(sq), sq);
         }
 
-        U64 ep_hash = 0ULL;
+        U128 ep_hash = 0ULL;
         if (ep_sq_ != Square::NO_SQ) ep_hash ^= Zobrist::enpassant(ep_sq_.file());
 
-        U64 stm_hash = 0ULL;
+        U128 stm_hash = 0ULL;
         if (stm_ == Color::WHITE) stm_hash ^= Zobrist::sideToMove();
 
-        U64 castling_hash = 0ULL;
+        U128 castling_hash = 0ULL;
         castling_hash ^= Zobrist::castling(cr_.hashIndex());
 
         return hash_key ^ ep_hash ^ stm_hash ^ castling_hash;
@@ -1139,7 +1140,7 @@ class Board {
     std::array<Bitboard, 2> occ_bb_    = {};
     std::array<Piece, 64> board_       = {};
 
-    U64 key_           = 0ULL;
+    U128 key_          = 0ULL;
     CastlingRights cr_ = {};
     uint16_t plies_    = 0;
     Color stm_         = Color::WHITE;
