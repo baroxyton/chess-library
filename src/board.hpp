@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cctype>
 #include <cstdint>
+#include <iomanip>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -1368,6 +1369,14 @@ class Board {
     std::string original_fen_;
 };
 
+inline std::string u128ToHex(__uint128_t val) {
+    std::ostringstream oss;
+    oss << "0x" << std::hex;
+    oss << static_cast<uint64_t>(val >> 64);
+    oss << std::setw(16) << std::setfill('0') << static_cast<uint64_t>(val);
+    return oss.str();
+}
+
 inline std::ostream &operator<<(std::ostream &os, const Board &b) {
     for (int i = 63; i >= 0; i -= 8) {
         for (int j = 7; j >= 0; j--) {
@@ -1383,7 +1392,7 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
     os << "Halfmoves: " << b.halfMoveClock() << "\n";
     os << "Fullmoves: " << b.fullMoveNumber() << "\n";
     os << "EP: " << b.ep_sq_.index() << "\n";
-    os << "Hash: " << b.key_ << "\n";
+    os << "Hash: " << u128ToHex(b.key_) << "\n";
 
     os << std::endl;
 
