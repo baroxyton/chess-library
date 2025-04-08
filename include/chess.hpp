@@ -31,6 +31,11 @@ VERSION: 0.8.7
 #ifndef CHESS_HPP
 #define CHESS_HPP
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
+
 
 #include <functional>
 #include <utility>
@@ -47,6 +52,10 @@ VERSION: 0.8.7
 #include <cassert>
 #include <iostream>
 #include <string>
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 #if defined(_MSC_VER)
 #    include <intrin.h>
@@ -58,6 +67,10 @@ VERSION: 0.8.7
 
 
 #include <ostream>
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -66,8 +79,8 @@ class Color {
     enum class underlying : std::int8_t { WHITE = 0, BLACK = 1, NONE = -1 };
 
     constexpr Color() : color(underlying::NONE) {}
-    constexpr Color(underlying c) : color(c) { assert(isValid(int(c))); }
-    constexpr Color(int c) : Color(static_cast<underlying>(c)) { assert(isValid(c)); }
+    constexpr Color(underlying c) : color(c) { CHESS_SAFE_ASSERT(isValid(int(c))); }
+    constexpr Color(int c) : Color(static_cast<underlying>(c)) { CHESS_SAFE_ASSERT(isValid(c)); }
     constexpr Color(std::string_view str)
         : color(str == "w"   ? underlying::WHITE
                 : str == "b" ? underlying::BLACK
@@ -90,7 +103,7 @@ class Color {
     }
 
     constexpr Color operator~() const noexcept {
-        assert(color != underlying::NONE);
+        CHESS_SAFE_ASSERT(color != underlying::NONE);
         return Color(static_cast<underlying>(static_cast<int>(color) ^ 1));
     }
 
@@ -129,6 +142,11 @@ constexpr Color::underlying operator~(Color::underlying color) {
 
 #include <vector>
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
+
 namespace chess {
 namespace utils {
 
@@ -155,6 +173,10 @@ constexpr char tolower(char c) { return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a')
 }  // namespace utils
 
 }  // namespace chess
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -310,12 +332,12 @@ class Square {
 
     constexpr Square() : sq(underlying::NO_SQ) {}
 
-    constexpr Square(int sq) : sq(static_cast<underlying>(sq)) { assert(sq <= 64 && sq >= 0); }
+    constexpr Square(int sq) : sq(static_cast<underlying>(sq)) { CHESS_SAFE_ASSERT(sq <= 64 && sq >= 0); }
     constexpr Square(File file, Rank rank) : sq(static_cast<underlying>(file + rank * 8)) {}
     constexpr Square(Rank rank, File file) : sq(static_cast<underlying>(file + rank * 8)) {}
     constexpr Square(underlying sq) : sq(sq) {}
     constexpr Square(std::string_view str) : sq(static_cast<underlying>((str[0] - 'a') + (str[1] - '1') * 8)) {
-        assert(str.size() >= 2);
+        CHESS_SAFE_ASSERT(str.size() >= 2);
     }
 
     constexpr Square operator^(const Square& s) const noexcept {
@@ -487,10 +509,10 @@ class Square {
      * @return
      */
     [[nodiscard]] constexpr Square ep_square() const noexcept {
-        assert(rank() == Rank::RANK_3     // capture
-               || rank() == Rank::RANK_4  // push
-               || rank() == Rank::RANK_5  // push
-               || rank() == Rank::RANK_6  // capture
+        CHESS_SAFE_ASSERT(rank() == Rank::RANK_3     // capture
+                          || rank() == Rank::RANK_4  // push
+                          || rank() == Rank::RANK_5  // push
+                          || rank() == Rank::RANK_6  // capture
         );
         return Square(static_cast<int>(sq) ^ 8);
     }
@@ -561,11 +583,11 @@ class Bitboard {
     constexpr Bitboard() : bits(0) {}
     constexpr Bitboard(std::uint64_t bits) : bits(bits) {}
     constexpr Bitboard(File file) : bits(0) {
-        assert(file != File::NO_FILE);
+        CHESS_SAFE_ASSERT(file != File::NO_FILE);
         bits = 0x0101010101010101ULL << static_cast<int>(file.internal());
     }
     constexpr Bitboard(Rank rank) : bits(0) {
-        assert(rank != Rank::NO_RANK);
+        CHESS_SAFE_ASSERT(rank != Rank::NO_RANK);
         bits = 0xFFULL << (8 * static_cast<int>(rank.internal()));
     }
 
@@ -621,18 +643,18 @@ class Bitboard {
     constexpr bool operator&&(const Bitboard& rhs) const noexcept { return bits && rhs.bits; }
 
     constexpr Bitboard& set(int index) noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         bits |= (1ULL << index);
         return *this;
     }
 
     [[nodiscard]] constexpr bool check(int index) const noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         return bits & (1ULL << index);
     }
 
     constexpr Bitboard& clear(int index) noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         bits &= ~(1ULL << index);
         return *this;
     }
@@ -643,12 +665,12 @@ class Bitboard {
     }
 
     [[nodiscard]] static constexpr Bitboard fromSquare(int index) noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         return Bitboard(1ULL << index);
     }
 
     [[nodiscard]] static constexpr Bitboard fromSquare(Square sq) noexcept {
-        assert(sq.index() >= 0 && sq.index() < 64);
+        CHESS_SAFE_ASSERT(sq.index() >= 0 && sq.index() < 64);
         return Bitboard(1ULL << sq.index());
     }
 
@@ -659,7 +681,7 @@ class Bitboard {
     constexpr
 #endif
         int lsb() const noexcept {
-        assert(bits != 0);
+        CHESS_SAFE_ASSERT(bits != 0);
 #if __cplusplus >= 202002L
         return std::countr_zero(bits);
 #else
@@ -680,7 +702,7 @@ class Bitboard {
     constexpr
 #endif
         int msb() const noexcept {
-        assert(bits != 0);
+        CHESS_SAFE_ASSERT(bits != 0);
 
 #if __cplusplus >= 202002L
         return std::countl_zero(bits) ^ 63;
@@ -744,6 +766,10 @@ constexpr Bitboard operator|(std::uint64_t lhs, const Bitboard& rhs) { return rh
 namespace chess {
 class Board;
 }  // namespace chess
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 class attacks {
@@ -989,6 +1015,11 @@ class attacks {
 
 
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
+
 namespace chess::constants {
 
 constexpr Bitboard DEFAULT_CHECKMASK = Bitboard(0xFFFFFFFFFFFFFFFFull);
@@ -999,6 +1030,10 @@ constexpr auto MAX_MOVES             = 256;
 
 
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -1017,7 +1052,7 @@ class PieceType {
     constexpr PieceType() : pt(underlying::NONE) {}
     constexpr PieceType(underlying pt) : pt(pt) {}
     constexpr explicit PieceType(std::string_view type) : pt(underlying::NONE) {
-        assert(type.size() > 0);
+        CHESS_SAFE_ASSERT(type.size() > 0);
 
         char c = type[0];
 
@@ -1181,6 +1216,11 @@ class Piece {
 };
 }  // namespace chess
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
+
 namespace chess {
 
 class Move {
@@ -1198,7 +1238,7 @@ class Move {
      */
     template <std::uint16_t MoveType = 0>
     [[nodiscard]] static constexpr Move make(Square source, Square target, PieceType pt = PieceType::KNIGHT) noexcept {
-        assert(pt >= PieceType(PieceType::KNIGHT) && pt <= PieceType(PieceType::QUEEN));
+        CHESS_SAFE_ASSERT(pt >= PieceType(PieceType::KNIGHT) && pt <= PieceType(PieceType::QUEEN));
 
         std::uint16_t bits_promotion = static_cast<std::uint16_t>(pt - PieceType(PieceType::KNIGHT));
 
@@ -1277,6 +1317,11 @@ inline std::ostream &operator<<(std::ostream &os, const Move &move) {
 #include <iterator>
 #include <stdexcept>
 
+
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 class Movelist {
@@ -1360,7 +1405,7 @@ class Movelist {
      * @param move
      */
     constexpr void add(const_reference move) noexcept {
-        assert(size_ < constants::MAX_MOVES);
+        CHESS_SAFE_ASSERT(size_ < constants::MAX_MOVES);
         moves_[size_++] = move;
     }
 
@@ -1369,7 +1414,7 @@ class Movelist {
      * @param move
      */
     constexpr void add(value_type&& move) noexcept {
-        assert(size_ < constants::MAX_MOVES);
+        CHESS_SAFE_ASSERT(size_ < constants::MAX_MOVES);
         moves_[size_++] = move;
     }
 
@@ -1395,6 +1440,10 @@ class Movelist {
     size_type size_ = 0;
 };
 }  // namespace chess
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 enum PieceGenType {
@@ -1906,7 +1955,6 @@ class Zobrist {
     static constexpr int MAP_HASH_PIECE[12] = {1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10};
 
     [[nodiscard]] static U128 piece(Piece piece, Square square) noexcept {
-        assert(piece < 12);
 #if __cplusplus >= 202207L
         [[assume(piece < 12)]];
 #endif
@@ -1914,7 +1962,6 @@ class Zobrist {
     }
 
     [[nodiscard]] static U128 enpassant(File file) noexcept {
-        assert(int(file) < 8);
 #if __cplusplus >= 202207L
         [[assume(int(file) < 8)]];
 #endif
@@ -1922,7 +1969,6 @@ class Zobrist {
     }
 
     [[nodiscard]] static U128 castling(int castling) noexcept {
-        assert(castling >= 0 && castling < 16);
 #if __cplusplus >= 202207L
         [[assume(castling < 16)]];
 #endif
@@ -1930,7 +1976,6 @@ class Zobrist {
     }
 
     [[nodiscard]] static U128 castlingIndex(int idx) noexcept {
-        assert(idx >= 0 && idx < 4);
 #if __cplusplus >= 202207L
         [[assume(idx < 4)]];
 #endif
@@ -1944,6 +1989,10 @@ class Zobrist {
 };
 
 }  // namespace chess
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -2200,7 +2249,7 @@ class Board {
         const auto pt       = at<PieceType>(move.from());
 
         // Validate side to move
-        assert((at(move.from()) < Piece::BLACKPAWN) == (stm_ == Color::WHITE));
+        CHESS_SAFE_ASSERT((at(move.from()) < Piece::BLACKPAWN) == (stm_ == Color::WHITE));
 
         prev_states_.emplace_back(key_, cr_, ep_sq_, hfm_, captured);
 
@@ -2281,7 +2330,7 @@ class Board {
                     }
 
                     if (found != 0) {
-                        assert(at(move.to().ep_square()) == Piece::NONE);
+                        CHESS_SAFE_ASSERT(at(move.to().ep_square()) == Piece::NONE);
                         ep_sq_ = move.to().ep_square();
                         key_ ^= Zobrist::enpassant(move.to().ep_square().file());
                     }
@@ -2290,8 +2339,8 @@ class Board {
         }
 
         if (move.typeOf() == Move::CASTLING) {
-            assert(at<PieceType>(move.from()) == PieceType::KING);
-            assert(at<PieceType>(move.to()) == PieceType::ROOK);
+            CHESS_SAFE_ASSERT(at<PieceType>(move.from()) == PieceType::KING);
+            CHESS_SAFE_ASSERT(at<PieceType>(move.to()) == PieceType::ROOK);
 
             const bool king_side = move.to() > move.from();
             const auto rookTo    = Square::castling_rook_square(king_side, stm_);
@@ -2303,8 +2352,8 @@ class Board {
             removePiece(king, move.from());
             removePiece(rook, move.to());
 
-            assert(king == Piece(PieceType::KING, stm_));
-            assert(rook == Piece(PieceType::ROOK, stm_));
+            CHESS_SAFE_ASSERT(king == Piece(PieceType::KING, stm_));
+            CHESS_SAFE_ASSERT(rook == Piece(PieceType::ROOK, stm_));
 
             placePiece(king, kingTo);
             placePiece(rook, rookTo);
@@ -2320,8 +2369,8 @@ class Board {
 
             key_ ^= Zobrist::piece(piece_pawn, move.from()) ^ Zobrist::piece(piece_prom, move.to());
         } else {
-            assert(at(move.from()) != Piece::NONE);
-            assert(at(move.to()) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.from()) != Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.to()) == Piece::NONE);
 
             const auto piece = at(move.from());
 
@@ -2332,7 +2381,7 @@ class Board {
         }
 
         if (move.typeOf() == Move::ENPASSANT) {
-            assert(at<PieceType>(move.to().ep_square()) == PieceType::PAWN);
+            CHESS_SAFE_ASSERT(at<PieceType>(move.to().ep_square()) == PieceType::PAWN);
 
             const auto piece = Piece(PieceType::PAWN, ~stm_);
 
@@ -2360,8 +2409,8 @@ class Board {
             const auto rook_from_sq = Square(king_side ? File::FILE_F : File::FILE_D, move.from().rank());
             const auto king_to_sq   = Square(king_side ? File::FILE_G : File::FILE_C, move.from().rank());
 
-            assert(at<PieceType>(rook_from_sq) == PieceType::ROOK);
-            assert(at<PieceType>(king_to_sq) == PieceType::KING);
+            CHESS_SAFE_ASSERT(at<PieceType>(rook_from_sq) == PieceType::ROOK);
+            CHESS_SAFE_ASSERT(at<PieceType>(king_to_sq) == PieceType::KING);
 
             const auto rook = at(rook_from_sq);
             const auto king = at(king_to_sq);
@@ -2369,8 +2418,8 @@ class Board {
             removePiece(rook, rook_from_sq);
             removePiece(king, king_to_sq);
 
-            assert(king == Piece(PieceType::KING, stm_));
-            assert(rook == Piece(PieceType::ROOK, stm_));
+            CHESS_SAFE_ASSERT(king == Piece(PieceType::KING, stm_));
+            CHESS_SAFE_ASSERT(rook == Piece(PieceType::ROOK, stm_));
 
             placePiece(king, move.from());
             placePiece(rook, move.to());
@@ -2382,24 +2431,24 @@ class Board {
             const auto pawn  = Piece(PieceType::PAWN, stm_);
             const auto piece = at(move.to());
 
-            assert(piece.type() == move.promotionType());
-            assert(piece.type() != PieceType::PAWN);
-            assert(piece.type() != PieceType::KING);
-            assert(piece.type() != PieceType::NONE);
+            CHESS_SAFE_ASSERT(piece.type() == move.promotionType());
+            CHESS_SAFE_ASSERT(piece.type() != PieceType::PAWN);
+            CHESS_SAFE_ASSERT(piece.type() != PieceType::KING);
+            CHESS_SAFE_ASSERT(piece.type() != PieceType::NONE);
 
             removePiece(piece, move.to());
             placePiece(pawn, move.from());
 
             if (prev.captured_piece != Piece::NONE) {
-                assert(at(move.to()) == Piece::NONE);
+                CHESS_SAFE_ASSERT(at(move.to()) == Piece::NONE);
                 placePiece(prev.captured_piece, move.to());
             }
 
             key_ = prev.hash;
             return;
         } else {
-            assert(at(move.to()) != Piece::NONE);
-            assert(at(move.from()) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.to()) != Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.from()) == Piece::NONE);
 
             const auto piece = at(move.to());
 
@@ -2411,11 +2460,11 @@ class Board {
             const auto pawn   = Piece(PieceType::PAWN, ~stm_);
             const auto pawnTo = static_cast<Square>(ep_sq_ ^ 8);
 
-            assert(at(pawnTo) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(pawnTo) == Piece::NONE);
 
             placePiece(pawn, pawnTo);
         } else if (prev.captured_piece != Piece::NONE) {
-            assert(at(move.to()) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.to()) == Piece::NONE);
 
             placePiece(prev.captured_piece, move.to());
         }
@@ -2489,7 +2538,7 @@ class Board {
      * @return
      */
     [[nodiscard]] Square kingSq(Color color) const {
-        assert(pieces(PieceType::KING, color) != Bitboard(0));
+        CHESS_SAFE_ASSERT(pieces(PieceType::KING, color) != Bitboard(0));
         return pieces(PieceType::KING, color).lsb();
     }
 
@@ -2518,7 +2567,7 @@ class Board {
      */
     template <typename T = Piece>
     [[nodiscard]] T at(Square sq) const {
-        assert(sq.index() < 64 && sq.index() >= 0);
+        CHESS_SAFE_ASSERT(sq.index() < 64 && sq.index() >= 0);
 
         if constexpr (std::is_same_v<T, PieceType>) {
             return board_[sq.index()].type();
@@ -2879,7 +2928,7 @@ class Board {
                 if (i == 'k') cr.setCastlingRight(Color::BLACK, king_side, File::FILE_H);
                 if (i == 'q') cr.setCastlingRight(Color::BLACK, queen_side, File::FILE_A);
 
-                assert(i == 'K' || i == 'Q' || i == 'k' || i == 'q');
+                CHESS_SAFE_ASSERT(i == 'K' || i == 'Q' || i == 'k' || i == 'q');
 
                 continue;
             }
@@ -2973,13 +3022,13 @@ class Board {
                 }
                 // castling rights for white
                 else if (nibble == 13) {
-                    assert(white_castle_idx < 2);
+                    CHESS_SAFE_ASSERT(white_castle_idx < 2);
                     white_castle[white_castle_idx++] = sq.file();
                     board.placePiece(Piece(PieceType::ROOK, Color::WHITE), sq);
                 }
                 // castling rights for black
                 else if (nibble == 14) {
-                    assert(black_castle_idx < 2);
+                    CHESS_SAFE_ASSERT(black_castle_idx < 2);
                     black_castle[black_castle_idx++] = sq.file();
                     board.placePiece(Piece(PieceType::ROOK, Color::BLACK), sq);
                 }
@@ -3077,15 +3126,15 @@ class Board {
 
    private:
     void removePieceInternal(Piece piece, Square sq) {
-        assert(board_[sq.index()] == piece && piece != Piece::NONE);
+        CHESS_SAFE_ASSERT(board_[sq.index()] == piece && piece != Piece::NONE);
 
         auto type  = piece.type();
         auto color = piece.color();
         auto index = sq.index();
 
-        assert(type != PieceType::NONE);
-        assert(color != Color::NONE);
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(type != PieceType::NONE);
+        CHESS_SAFE_ASSERT(color != Color::NONE);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
 
         pieces_bb_[type].clear(index);
         occ_bb_[color].clear(index);
@@ -3093,15 +3142,15 @@ class Board {
     }
 
     void placePieceInternal(Piece piece, Square sq) {
-        assert(board_[sq.index()] == Piece::NONE);
+        CHESS_SAFE_ASSERT(board_[sq.index()] == Piece::NONE);
 
         auto type  = piece.type();
         auto color = piece.color();
         auto index = sq.index();
 
-        assert(type != PieceType::NONE);
-        assert(color != Color::NONE);
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(type != PieceType::NONE);
+        CHESS_SAFE_ASSERT(color != Color::NONE);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
 
         pieces_bb_[type].set(index);
         occ_bb_[color].set(index);
@@ -3265,7 +3314,7 @@ class Board {
 
         key_ ^= Zobrist::castling(cr_.hashIndex());
 
-        assert(key_ == zobrist());
+        CHESS_SAFE_ASSERT(key_ == zobrist());
     }
 
     template <int N>
@@ -3324,6 +3373,10 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
     return os;
 }
 }  // namespace  chess
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -3353,7 +3406,7 @@ template <Direction direction>
     std::unreachable();
 #endif
 
-    assert(false);
+    CHESS_SAFE_ASSERT(false);
 
     return {};
 }
@@ -3509,6 +3562,10 @@ inline void attacks::initAttacks() {
 }  // namespace chess
 
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -3782,8 +3839,8 @@ inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitb
 
 [[nodiscard]] inline std::array<Move, 2> movegen::generateEPMove(const Board &board, Bitboard checkmask, Bitboard pin_d,
                                                                  Bitboard pawns_lr, Square ep, Color c) {
-    assert((ep.rank() == Rank::RANK_3 && board.sideToMove() == Color::BLACK) ||
-           (ep.rank() == Rank::RANK_6 && board.sideToMove() == Color::WHITE));
+    CHESS_SAFE_ASSERT((ep.rank() == Rank::RANK_3 && board.sideToMove() == Color::BLACK) ||
+                      (ep.rank() == Rank::RANK_6 && board.sideToMove() == Color::WHITE));
 
     std::array<Move, 2> moves = {Move::NO_MOVE, Move::NO_MOVE};
     auto i                    = 0;
@@ -3938,7 +3995,7 @@ inline void movegen::legalmoves(Movelist &movelist, const Board &board, int piec
     const auto pin_hv              = pinMaskRooks<c>(board, king_sq, occ_opp, occ_us);
     const auto pin_d               = pinMaskBishops<c>(board, king_sq, occ_opp, occ_us);
 
-    assert(checks <= 2);
+    CHESS_SAFE_ASSERT(checks <= 2);
 
     // Moves have to be on the checkmask
     Bitboard movable_square;
@@ -4054,6 +4111,10 @@ inline const std::array<std::array<Bitboard, 64>, 64> movegen::SQUARES_BETWEEN_B
 }  // namespace chess
 
 #include <istream>
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess::pgn {
 
@@ -4276,7 +4337,7 @@ class StreamParserError {
             case NotEnoughData:
                 return "Not enough data";
             default:
-                assert(false);
+                CHESS_SAFE_ASSERT(false);
                 return "Unknown error";
         }
     }
@@ -4793,6 +4854,10 @@ class StreamParser {
 
 #include <sstream>
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 class uci {
@@ -5106,8 +5171,9 @@ class uci {
             info.castling_short = san.length() == 0 || (san.length() >= 1 && san[0] != '-');
             info.castling_long  = san.length() >= 2 && san[0] == '-' && san[1] == castling_char;
 
-            assert((info.castling_short && !info.castling_long) || (!info.castling_short && info.castling_long) ||
-                   (!info.castling_short && !info.castling_long));
+            CHESS_SAFE_ASSERT((info.castling_short && !info.castling_long) ||
+                              (!info.castling_short && info.castling_long) ||
+                              (!info.castling_short && !info.castling_long));
         };
 
         static constexpr auto isRank = [](char c) { return c >= '1' && c <= '8'; };
@@ -5211,7 +5277,7 @@ class uci {
         const PieceType pt   = board.at(move.from()).type();
         const bool isCapture = board.at(move.to()) != Piece::NONE || move.typeOf() == Move::ENPASSANT;
 
-        assert(pt != PieceType::NONE);
+        CHESS_SAFE_ASSERT(pt != PieceType::NONE);
 
         if (pt != PieceType::PAWN) {
             appendPieceSymbol(pt, str);
