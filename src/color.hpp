@@ -5,6 +5,10 @@
 #include <ostream>
 #include <string>
 #include <string_view>
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -13,8 +17,8 @@ class Color {
     enum class underlying : std::int8_t { WHITE = 0, BLACK = 1, NONE = -1 };
 
     constexpr Color() : color(underlying::NONE) {}
-    constexpr Color(underlying c) : color(c) { assert(isValid(int(c))); }
-    constexpr Color(int c) : Color(static_cast<underlying>(c)) { assert(isValid(c)); }
+    constexpr Color(underlying c) : color(c) { CHESS_SAFE_ASSERT(isValid(int(c))); }
+    constexpr Color(int c) : Color(static_cast<underlying>(c)) { CHESS_SAFE_ASSERT(isValid(c)); }
     constexpr Color(std::string_view str)
         : color(str == "w"   ? underlying::WHITE
                 : str == "b" ? underlying::BLACK
@@ -37,7 +41,7 @@ class Color {
     }
 
     constexpr Color operator~() const noexcept {
-        assert(color != underlying::NONE);
+        CHESS_SAFE_ASSERT(color != underlying::NONE);
         return Color(static_cast<underlying>(static_cast<int>(color) ^ 1));
     }
 

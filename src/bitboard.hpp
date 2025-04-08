@@ -9,6 +9,10 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 #if defined(_MSC_VER)
 #    include <intrin.h>
@@ -24,11 +28,11 @@ class Bitboard {
     constexpr Bitboard() : bits(0) {}
     constexpr Bitboard(std::uint64_t bits) : bits(bits) {}
     constexpr Bitboard(File file) : bits(0) {
-        assert(file != File::NO_FILE);
+        CHESS_SAFE_ASSERT(file != File::NO_FILE);
         bits = 0x0101010101010101ULL << static_cast<int>(file.internal());
     }
     constexpr Bitboard(Rank rank) : bits(0) {
-        assert(rank != Rank::NO_RANK);
+        CHESS_SAFE_ASSERT(rank != Rank::NO_RANK);
         bits = 0xFFULL << (8 * static_cast<int>(rank.internal()));
     }
 
@@ -84,18 +88,18 @@ class Bitboard {
     constexpr bool operator&&(const Bitboard& rhs) const noexcept { return bits && rhs.bits; }
 
     constexpr Bitboard& set(int index) noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         bits |= (1ULL << index);
         return *this;
     }
 
     [[nodiscard]] constexpr bool check(int index) const noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         return bits & (1ULL << index);
     }
 
     constexpr Bitboard& clear(int index) noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         bits &= ~(1ULL << index);
         return *this;
     }
@@ -106,12 +110,12 @@ class Bitboard {
     }
 
     [[nodiscard]] static constexpr Bitboard fromSquare(int index) noexcept {
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
         return Bitboard(1ULL << index);
     }
 
     [[nodiscard]] static constexpr Bitboard fromSquare(Square sq) noexcept {
-        assert(sq.index() >= 0 && sq.index() < 64);
+        CHESS_SAFE_ASSERT(sq.index() >= 0 && sq.index() < 64);
         return Bitboard(1ULL << sq.index());
     }
 
@@ -122,7 +126,7 @@ class Bitboard {
     constexpr
 #endif
         int lsb() const noexcept {
-        assert(bits != 0);
+        CHESS_SAFE_ASSERT(bits != 0);
 #if __cplusplus >= 202002L
         return std::countr_zero(bits);
 #else
@@ -143,7 +147,7 @@ class Bitboard {
     constexpr
 #endif
         int msb() const noexcept {
-        assert(bits != 0);
+        CHESS_SAFE_ASSERT(bits != 0);
 
 #if __cplusplus >= 202002L
         return std::countl_zero(bits) ^ 63;

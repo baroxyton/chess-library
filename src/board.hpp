@@ -19,6 +19,10 @@
 #include "piece.hpp"
 #include "utils.hpp"
 #include "zobrist.hpp"
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -275,7 +279,7 @@ class Board {
         const auto pt       = at<PieceType>(move.from());
 
         // Validate side to move
-        assert((at(move.from()) < Piece::BLACKPAWN) == (stm_ == Color::WHITE));
+        CHESS_SAFE_ASSERT((at(move.from()) < Piece::BLACKPAWN) == (stm_ == Color::WHITE));
 
         prev_states_.emplace_back(key_, cr_, ep_sq_, hfm_, captured);
 
@@ -356,7 +360,7 @@ class Board {
                     }
 
                     if (found != 0) {
-                        assert(at(move.to().ep_square()) == Piece::NONE);
+                        CHESS_SAFE_ASSERT(at(move.to().ep_square()) == Piece::NONE);
                         ep_sq_ = move.to().ep_square();
                         key_ ^= Zobrist::enpassant(move.to().ep_square().file());
                     }
@@ -365,8 +369,8 @@ class Board {
         }
 
         if (move.typeOf() == Move::CASTLING) {
-            assert(at<PieceType>(move.from()) == PieceType::KING);
-            assert(at<PieceType>(move.to()) == PieceType::ROOK);
+            CHESS_SAFE_ASSERT(at<PieceType>(move.from()) == PieceType::KING);
+            CHESS_SAFE_ASSERT(at<PieceType>(move.to()) == PieceType::ROOK);
 
             const bool king_side = move.to() > move.from();
             const auto rookTo    = Square::castling_rook_square(king_side, stm_);
@@ -378,8 +382,8 @@ class Board {
             removePiece(king, move.from());
             removePiece(rook, move.to());
 
-            assert(king == Piece(PieceType::KING, stm_));
-            assert(rook == Piece(PieceType::ROOK, stm_));
+            CHESS_SAFE_ASSERT(king == Piece(PieceType::KING, stm_));
+            CHESS_SAFE_ASSERT(rook == Piece(PieceType::ROOK, stm_));
 
             placePiece(king, kingTo);
             placePiece(rook, rookTo);
@@ -395,8 +399,8 @@ class Board {
 
             key_ ^= Zobrist::piece(piece_pawn, move.from()) ^ Zobrist::piece(piece_prom, move.to());
         } else {
-            assert(at(move.from()) != Piece::NONE);
-            assert(at(move.to()) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.from()) != Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.to()) == Piece::NONE);
 
             const auto piece = at(move.from());
 
@@ -407,7 +411,7 @@ class Board {
         }
 
         if (move.typeOf() == Move::ENPASSANT) {
-            assert(at<PieceType>(move.to().ep_square()) == PieceType::PAWN);
+            CHESS_SAFE_ASSERT(at<PieceType>(move.to().ep_square()) == PieceType::PAWN);
 
             const auto piece = Piece(PieceType::PAWN, ~stm_);
 
@@ -435,8 +439,8 @@ class Board {
             const auto rook_from_sq = Square(king_side ? File::FILE_F : File::FILE_D, move.from().rank());
             const auto king_to_sq   = Square(king_side ? File::FILE_G : File::FILE_C, move.from().rank());
 
-            assert(at<PieceType>(rook_from_sq) == PieceType::ROOK);
-            assert(at<PieceType>(king_to_sq) == PieceType::KING);
+            CHESS_SAFE_ASSERT(at<PieceType>(rook_from_sq) == PieceType::ROOK);
+            CHESS_SAFE_ASSERT(at<PieceType>(king_to_sq) == PieceType::KING);
 
             const auto rook = at(rook_from_sq);
             const auto king = at(king_to_sq);
@@ -444,8 +448,8 @@ class Board {
             removePiece(rook, rook_from_sq);
             removePiece(king, king_to_sq);
 
-            assert(king == Piece(PieceType::KING, stm_));
-            assert(rook == Piece(PieceType::ROOK, stm_));
+            CHESS_SAFE_ASSERT(king == Piece(PieceType::KING, stm_));
+            CHESS_SAFE_ASSERT(rook == Piece(PieceType::ROOK, stm_));
 
             placePiece(king, move.from());
             placePiece(rook, move.to());
@@ -457,24 +461,24 @@ class Board {
             const auto pawn  = Piece(PieceType::PAWN, stm_);
             const auto piece = at(move.to());
 
-            assert(piece.type() == move.promotionType());
-            assert(piece.type() != PieceType::PAWN);
-            assert(piece.type() != PieceType::KING);
-            assert(piece.type() != PieceType::NONE);
+            CHESS_SAFE_ASSERT(piece.type() == move.promotionType());
+            CHESS_SAFE_ASSERT(piece.type() != PieceType::PAWN);
+            CHESS_SAFE_ASSERT(piece.type() != PieceType::KING);
+            CHESS_SAFE_ASSERT(piece.type() != PieceType::NONE);
 
             removePiece(piece, move.to());
             placePiece(pawn, move.from());
 
             if (prev.captured_piece != Piece::NONE) {
-                assert(at(move.to()) == Piece::NONE);
+                CHESS_SAFE_ASSERT(at(move.to()) == Piece::NONE);
                 placePiece(prev.captured_piece, move.to());
             }
 
             key_ = prev.hash;
             return;
         } else {
-            assert(at(move.to()) != Piece::NONE);
-            assert(at(move.from()) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.to()) != Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.from()) == Piece::NONE);
 
             const auto piece = at(move.to());
 
@@ -486,11 +490,11 @@ class Board {
             const auto pawn   = Piece(PieceType::PAWN, ~stm_);
             const auto pawnTo = static_cast<Square>(ep_sq_ ^ 8);
 
-            assert(at(pawnTo) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(pawnTo) == Piece::NONE);
 
             placePiece(pawn, pawnTo);
         } else if (prev.captured_piece != Piece::NONE) {
-            assert(at(move.to()) == Piece::NONE);
+            CHESS_SAFE_ASSERT(at(move.to()) == Piece::NONE);
 
             placePiece(prev.captured_piece, move.to());
         }
@@ -564,7 +568,7 @@ class Board {
      * @return
      */
     [[nodiscard]] Square kingSq(Color color) const {
-        assert(pieces(PieceType::KING, color) != Bitboard(0));
+        CHESS_SAFE_ASSERT(pieces(PieceType::KING, color) != Bitboard(0));
         return pieces(PieceType::KING, color).lsb();
     }
 
@@ -593,7 +597,7 @@ class Board {
      */
     template <typename T = Piece>
     [[nodiscard]] T at(Square sq) const {
-        assert(sq.index() < 64 && sq.index() >= 0);
+        CHESS_SAFE_ASSERT(sq.index() < 64 && sq.index() >= 0);
 
         if constexpr (std::is_same_v<T, PieceType>) {
             return board_[sq.index()].type();
@@ -954,7 +958,7 @@ class Board {
                 if (i == 'k') cr.setCastlingRight(Color::BLACK, king_side, File::FILE_H);
                 if (i == 'q') cr.setCastlingRight(Color::BLACK, queen_side, File::FILE_A);
 
-                assert(i == 'K' || i == 'Q' || i == 'k' || i == 'q');
+                CHESS_SAFE_ASSERT(i == 'K' || i == 'Q' || i == 'k' || i == 'q');
 
                 continue;
             }
@@ -1048,13 +1052,13 @@ class Board {
                 }
                 // castling rights for white
                 else if (nibble == 13) {
-                    assert(white_castle_idx < 2);
+                    CHESS_SAFE_ASSERT(white_castle_idx < 2);
                     white_castle[white_castle_idx++] = sq.file();
                     board.placePiece(Piece(PieceType::ROOK, Color::WHITE), sq);
                 }
                 // castling rights for black
                 else if (nibble == 14) {
-                    assert(black_castle_idx < 2);
+                    CHESS_SAFE_ASSERT(black_castle_idx < 2);
                     black_castle[black_castle_idx++] = sq.file();
                     board.placePiece(Piece(PieceType::ROOK, Color::BLACK), sq);
                 }
@@ -1152,15 +1156,15 @@ class Board {
 
    private:
     void removePieceInternal(Piece piece, Square sq) {
-        assert(board_[sq.index()] == piece && piece != Piece::NONE);
+        CHESS_SAFE_ASSERT(board_[sq.index()] == piece && piece != Piece::NONE);
 
         auto type  = piece.type();
         auto color = piece.color();
         auto index = sq.index();
 
-        assert(type != PieceType::NONE);
-        assert(color != Color::NONE);
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(type != PieceType::NONE);
+        CHESS_SAFE_ASSERT(color != Color::NONE);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
 
         pieces_bb_[type].clear(index);
         occ_bb_[color].clear(index);
@@ -1168,15 +1172,15 @@ class Board {
     }
 
     void placePieceInternal(Piece piece, Square sq) {
-        assert(board_[sq.index()] == Piece::NONE);
+        CHESS_SAFE_ASSERT(board_[sq.index()] == Piece::NONE);
 
         auto type  = piece.type();
         auto color = piece.color();
         auto index = sq.index();
 
-        assert(type != PieceType::NONE);
-        assert(color != Color::NONE);
-        assert(index >= 0 && index < 64);
+        CHESS_SAFE_ASSERT(type != PieceType::NONE);
+        CHESS_SAFE_ASSERT(color != Color::NONE);
+        CHESS_SAFE_ASSERT(index >= 0 && index < 64);
 
         pieces_bb_[type].set(index);
         occ_bb_[color].set(index);
@@ -1340,7 +1344,7 @@ class Board {
 
         key_ ^= Zobrist::castling(cr_.hashIndex());
 
-        assert(key_ == zobrist());
+        CHESS_SAFE_ASSERT(key_ == zobrist());
     }
 
     template <int N>

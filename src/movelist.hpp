@@ -10,6 +10,11 @@
 #include "constants.hpp"
 #include "move.hpp"
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
+
 namespace chess {
 class Movelist {
    public:
@@ -92,7 +97,7 @@ class Movelist {
      * @param move
      */
     constexpr void add(const_reference move) noexcept {
-        assert(size_ < constants::MAX_MOVES);
+        CHESS_SAFE_ASSERT(size_ < constants::MAX_MOVES);
         moves_[size_++] = move;
     }
 
@@ -101,7 +106,7 @@ class Movelist {
      * @param move
      */
     constexpr void add(value_type&& move) noexcept {
-        assert(size_ < constants::MAX_MOVES);
+        CHESS_SAFE_ASSERT(size_ < constants::MAX_MOVES);
         moves_[size_++] = move;
     }
 

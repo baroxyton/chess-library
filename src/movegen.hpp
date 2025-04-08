@@ -7,6 +7,10 @@
 #include "constants.hpp"
 #include "coords.hpp"
 #include "movegen_fwd.hpp"
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -280,8 +284,8 @@ inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitb
 
 [[nodiscard]] inline std::array<Move, 2> movegen::generateEPMove(const Board &board, Bitboard checkmask, Bitboard pin_d,
                                                                  Bitboard pawns_lr, Square ep, Color c) {
-    assert((ep.rank() == Rank::RANK_3 && board.sideToMove() == Color::BLACK) ||
-           (ep.rank() == Rank::RANK_6 && board.sideToMove() == Color::WHITE));
+    CHESS_SAFE_ASSERT((ep.rank() == Rank::RANK_3 && board.sideToMove() == Color::BLACK) ||
+                      (ep.rank() == Rank::RANK_6 && board.sideToMove() == Color::WHITE));
 
     std::array<Move, 2> moves = {Move::NO_MOVE, Move::NO_MOVE};
     auto i                    = 0;
@@ -436,7 +440,7 @@ inline void movegen::legalmoves(Movelist &movelist, const Board &board, int piec
     const auto pin_hv              = pinMaskRooks<c>(board, king_sq, occ_opp, occ_us);
     const auto pin_d               = pinMaskBishops<c>(board, king_sq, occ_opp, occ_us);
 
-    assert(checks <= 2);
+    CHESS_SAFE_ASSERT(checks <= 2);
 
     // Moves have to be on the checkmask
     Bitboard movable_square;

@@ -31,6 +31,11 @@ VERSION: 0.8.7
 #ifndef CHESS_HPP
 #define CHESS_HPP
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
+
 #include "attacks.hpp"
 #include "attacks_fwd.hpp"
 #include "bitboard.hpp"

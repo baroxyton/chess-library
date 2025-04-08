@@ -12,6 +12,10 @@
 #include "color.hpp"
 #include "move.hpp"
 #include "movegen_fwd.hpp"
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 class uci {
@@ -325,8 +329,9 @@ class uci {
             info.castling_short = san.length() == 0 || (san.length() >= 1 && san[0] != '-');
             info.castling_long  = san.length() >= 2 && san[0] == '-' && san[1] == castling_char;
 
-            assert((info.castling_short && !info.castling_long) || (!info.castling_short && info.castling_long) ||
-                   (!info.castling_short && !info.castling_long));
+            CHESS_SAFE_ASSERT((info.castling_short && !info.castling_long) ||
+                              (!info.castling_short && info.castling_long) ||
+                              (!info.castling_short && !info.castling_long));
         };
 
         static constexpr auto isRank = [](char c) { return c >= '1' && c <= '8'; };
@@ -430,7 +435,7 @@ class uci {
         const PieceType pt   = board.at(move.from()).type();
         const bool isCapture = board.at(move.to()) != Piece::NONE || move.typeOf() == Move::ENPASSANT;
 
-        assert(pt != PieceType::NONE);
+        CHESS_SAFE_ASSERT(pt != PieceType::NONE);
 
         if (pt != PieceType::PAWN) {
             appendPieceSymbol(pt, str);

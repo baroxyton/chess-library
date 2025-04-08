@@ -7,6 +7,10 @@
 
 #include "color.hpp"
 #include "utils.hpp"
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 
@@ -162,12 +166,12 @@ class Square {
 
     constexpr Square() : sq(underlying::NO_SQ) {}
 
-    constexpr Square(int sq) : sq(static_cast<underlying>(sq)) { assert(sq <= 64 && sq >= 0); }
+    constexpr Square(int sq) : sq(static_cast<underlying>(sq)) { CHESS_SAFE_ASSERT(sq <= 64 && sq >= 0); }
     constexpr Square(File file, Rank rank) : sq(static_cast<underlying>(file + rank * 8)) {}
     constexpr Square(Rank rank, File file) : sq(static_cast<underlying>(file + rank * 8)) {}
     constexpr Square(underlying sq) : sq(sq) {}
     constexpr Square(std::string_view str) : sq(static_cast<underlying>((str[0] - 'a') + (str[1] - '1') * 8)) {
-        assert(str.size() >= 2);
+        CHESS_SAFE_ASSERT(str.size() >= 2);
     }
 
     constexpr Square operator^(const Square& s) const noexcept {
@@ -339,10 +343,10 @@ class Square {
      * @return
      */
     [[nodiscard]] constexpr Square ep_square() const noexcept {
-        assert(rank() == Rank::RANK_3     // capture
-               || rank() == Rank::RANK_4  // push
-               || rank() == Rank::RANK_5  // push
-               || rank() == Rank::RANK_6  // capture
+        CHESS_SAFE_ASSERT(rank() == Rank::RANK_3     // capture
+                          || rank() == Rank::RANK_4  // push
+                          || rank() == Rank::RANK_5  // push
+                          || rank() == Rank::RANK_6  // capture
         );
         return Square(static_cast<int>(sq) ^ 8);
     }

@@ -7,6 +7,10 @@
 #include "board_fwd.hpp"
 #include "color.hpp"
 #include "coords.hpp"
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess {
 class attacks {

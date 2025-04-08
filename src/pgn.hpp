@@ -5,6 +5,10 @@
 #include <istream>
 #include <optional>
 #include <string_view>
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
 
 namespace chess::pgn {
 
@@ -227,7 +231,7 @@ class StreamParserError {
             case NotEnoughData:
                 return "Not enough data";
             default:
-                assert(false);
+                CHESS_SAFE_ASSERT(false);
                 return "Unknown error";
         }
     }

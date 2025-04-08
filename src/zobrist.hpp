@@ -429,7 +429,6 @@ class Zobrist {
     static constexpr int MAP_HASH_PIECE[12] = {1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10};
 
     [[nodiscard]] static U128 piece(Piece piece, Square square) noexcept {
-        assert(piece < 12);
 #if __cplusplus >= 202207L
         [[assume(piece < 12)]];
 #endif
@@ -437,7 +436,6 @@ class Zobrist {
     }
 
     [[nodiscard]] static U128 enpassant(File file) noexcept {
-        assert(int(file) < 8);
 #if __cplusplus >= 202207L
         [[assume(int(file) < 8)]];
 #endif
@@ -445,7 +443,6 @@ class Zobrist {
     }
 
     [[nodiscard]] static U128 castling(int castling) noexcept {
-        assert(castling >= 0 && castling < 16);
 #if __cplusplus >= 202207L
         [[assume(castling < 16)]];
 #endif
@@ -453,7 +450,6 @@ class Zobrist {
     }
 
     [[nodiscard]] static U128 castlingIndex(int idx) noexcept {
-        assert(idx >= 0 && idx < 4);
 #if __cplusplus >= 202207L
         [[assume(idx < 4)]];
 #endif

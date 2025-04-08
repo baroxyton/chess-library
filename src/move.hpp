@@ -5,6 +5,11 @@
 #include "coords.hpp"
 #include "piece.hpp"
 
+#ifndef CHESS_SAFE_ASSERT
+#    define CHESS_SAFE_ASSERT(x) \
+        if (!(x)) throw std::runtime_error("assert failed: " #x)
+#endif
+
 namespace chess {
 
 class Move {
@@ -22,7 +27,7 @@ class Move {
      */
     template <std::uint16_t MoveType = 0>
     [[nodiscard]] static constexpr Move make(Square source, Square target, PieceType pt = PieceType::KNIGHT) noexcept {
-        assert(pt >= PieceType(PieceType::KNIGHT) && pt <= PieceType(PieceType::QUEEN));
+        CHESS_SAFE_ASSERT(pt >= PieceType(PieceType::KNIGHT) && pt <= PieceType(PieceType::QUEEN));
 
         std::uint16_t bits_promotion = static_cast<std::uint16_t>(pt - PieceType(PieceType::KNIGHT));
 
